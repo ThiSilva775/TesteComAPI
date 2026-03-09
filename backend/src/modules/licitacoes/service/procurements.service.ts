@@ -9,7 +9,7 @@ import { ProcurementsRepository } from '../repository/procurements.repository';
 export class ProcurementsService {
   constructor(private readonly repository = new ProcurementsRepository()) {}
 
-  async syncByPublicationDate(startDate: string, endDate: string) {
+  async syncByPublicationDate(startDate: string, endDate: string, cnpj?: string) {
     const syncLog = await prisma.syncLog.create({
       data: { resource: 'procurements', startedAt: new Date(), status: 'running' }
     });
@@ -20,12 +20,18 @@ export class ProcurementsService {
 
     try {
       while (true) {
-        const response = await pncpClient.getWithRetry<PncpProcurement>(env.PNCP_CONTRACTING_BY_DATE_PATH, {
+        const params: any = {
           dataInicial: startDate,
           dataFinal: endDate,
           pagina: page,
           tamanhoPagina: 50
-        });
+        };
+
+        if (cnpj) {
+          params.cnpj = cnpj;
+        }
+
+        const response = await pncpClient.getWithRetry<PncpProcurement>(env.PNCP_CONTRACTING_BY_DATE_PATH, params);
 
         const mapped = (response.data ?? []).map(procurementMapper.fromPncp);
         await this.repository.upsertMany(mapped);
@@ -45,7 +51,7 @@ export class ProcurementsService {
           endedAt: new Date(),
           totalFetched,
           totalSaved,
-          lastCursor: `${startDate}:${endDate}`
+          lastCursor: `${startDate}:${endDate}${cnpj ? `:${cnpj}` : ''}`
         }
       });
 
@@ -60,14 +66,19 @@ export class ProcurementsService {
   }
 
   async incrementalSync() {
-    const today = new Date();
-    const start = new Date(today);
-    start.setDate(today.getDate() - env.SYNC_DEFAULT_DAYS_BACK);
-    return this.syncByPublicationDate(start.toISOString().slice(0, 10), today.toISOString().slice(0, 10));
+    // Syncing data for Prefeitura Municipal de Niquelândia-GO
+    const cnpj = '02.215.895/0001-07';
+    const startDate = '2024-01-01';
+    const endDate = '2024-12-31';
+    return this.syncByPublicationDate(startDate, endDate, cnpj);
   }
 
   async list(query: ListProcurementsQuery) {
     return this.repository.list(query);
+  }
+
+  async findById(id: string) {
+    return this.repository.findById(id);
   }
 
   async dashboard() {

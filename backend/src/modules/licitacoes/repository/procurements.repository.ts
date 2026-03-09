@@ -52,6 +52,13 @@ export class ProcurementsRepository {
     return { total, records };
   }
 
+  async findById(id: string) {
+    return prisma.procurement.findUnique({
+      where: { id },
+      include: { organization: true, documents: true }
+    });
+  }
+
   async dashboard() {
     const [total, open, byModality, bySituation] = await Promise.all([
       prisma.procurement.count(),

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { KpiCard } from '../components/KpiCard';
 import { getDashboard, getProcurements } from '../lib/api';
 
@@ -19,10 +20,13 @@ export default async function HomePage() {
         <h2 className="text-xl font-semibold">Últimas contratações sincronizadas</h2>
         <ul className="mt-4 space-y-3">
           {procurements.data?.map((item: any) => (
-            <li key={item.id} className="rounded border border-slate-200 p-3">
-              <p className="font-medium">{item.title ?? 'Sem título'}</p>
-              <p className="text-sm text-slate-500">PNCP: {item.pncpControlNumber}</p>
-              <p className="text-sm text-slate-500">Modalidade: {item.modalityDescription ?? 'Não informada'}</p>
+            <li key={item.id} className="rounded border border-slate-200 p-3 hover:bg-slate-50 transition">
+              <Link href={`/licitation/${item.id}`} className="block">
+                <p className="font-medium text-blue-600 hover:underline">{item.title ?? 'Sem título'}</p>
+                <p className="text-sm text-slate-500">PNCP: {item.pncpControlNumber}</p>
+                <p className="text-sm text-slate-500">Modalidade: {item.modalityDescription ?? 'Não informada'}</p>
+                <p className="mt-2 inline-block rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">Ver detalhes →</p>
+              </Link>
             </li>
           ))}
         </ul>

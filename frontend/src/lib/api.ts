@@ -11,3 +11,13 @@ export async function getProcurements() {
   if (!response.ok) throw new Error('Erro ao carregar contratações');
   return response.json();
 }
+
+export async function getProcurementDetail(id: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/procurements/${id}`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}

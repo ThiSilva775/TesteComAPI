@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -11,7 +11,7 @@ model Organization {
   id            String   @id @default(cuid())
   cnpj          String   @unique
   name          String
-  localRaw      Json?
+  localRaw      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   procurements  Procurement[]
@@ -35,7 +35,7 @@ model Procurement {
   proposalEndDate       DateTime?
   isOpen                Boolean  @default(false)
   organizationId        String?
-  localRaw              Json?
+  localRaw              String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   organization          Organization? @relation(fields: [organizationId], references: [id])
@@ -53,7 +53,7 @@ model ProcurementDocument {
   documentTypeCode  String?
   title             String?
   url               String?
-  localRaw          Json?
+  localRaw          String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   procurement       Procurement @relation(fields: [procurementId], references: [id], onDelete: Cascade)
@@ -68,7 +68,7 @@ model PriceRegistryAct {
   validityStartDate     DateTime?
   validityEndDate       DateTime?
   objectDescription     String?
-  localRaw              Json?
+  localRaw              String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
@@ -81,10 +81,10 @@ model Contract {
   contractNumber        String?
   publicationDate       DateTime?
   signedAt              DateTime?
-  value                 Decimal? @db.Decimal(15,2)
+  value                 Float?
   organizationId        String?
   procurementId         String?
-  localRaw              Json?
+  localRaw              String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   organization          Organization? @relation(fields: [organizationId], references: [id])
