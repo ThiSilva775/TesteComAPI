@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id            String   @id @default(cuid())
+  cnpj          String   @unique
+  name          String
+  localRaw      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  procurements  Procurement[]
+  contracts     Contract[]
+
+  @@index([name])
+}
+
+model Procurement {
+  id                    String   @id @default(cuid())
+  pncpControlNumber     String   @unique
+  procurementNumber     String?
+  year                  Int?
+  title                 String?
+  modalityCode          String?
+  modalityDescription   String?
+  situationCode         String?
+  situationDescription  String?
+  publicationDate       DateTime?
+  proposalStartDate     DateTime?
+  proposalEndDate       DateTime?
+  isOpen                Boolean  @default(false)
+  organizationId        String?
+  localRaw              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  organization          Organization? @relation(fields: [organizationId], references: [id])
+  documents             ProcurementDocument[]
+
+  @@index([publicationDate])
+  @@index([modalityCode])
+  @@index([situationCode])
+}
+
+model ProcurementDocument {
+  id                String   @id @default(cuid())
+  procurementId     String
+  pncpDocumentId    String?
+  documentTypeCode  String?
+  title             String?
+  url               String?
+  localRaw          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  procurement       Procurement @relation(fields: [procurementId], references: [id], onDelete: Cascade)
+
+  @@index([pncpDocumentId])
+}
+
+model PriceRegistryAct {
+  id                    String   @id @default(cuid())
+  pncpControlNumber     String   @unique
+  organizationCnpj      String?
+  validityStartDate     DateTime?
+  validityEndDate       DateTime?
+  objectDescription     String?
+  localRaw              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([validityEndDate])
+}
+
+model Contract {
+  id                    String   @id @default(cuid())
+  pncpControlNumber     String   @unique
+  contractNumber        String?
+  publicationDate       DateTime?
+  signedAt              DateTime?
+  value                 Decimal? @db.Decimal(15,2)
+  organizationId        String?
+  procurementId         String?
+  localRaw              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  organization          Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([publicationDate])
+}
+
+model DomainModality {
+  code        String   @id
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DomainJudgmentCriterion {
+  code        String   @id
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DomainDisputeMode {
+  code        String   @id
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DomainDocumentType {
+  code        String   @id
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SyncLog {
+  id            String   @id @default(cuid())
+  resource      String
+  startedAt     DateTime
+  endedAt       DateTime?
+  status        String
+  message       String?
+  lastCursor    String?
+  totalFetched  Int      @default(0)
+  totalSaved    Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([resource, startedAt])
+}
